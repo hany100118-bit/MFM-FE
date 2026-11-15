@@ -38,7 +38,13 @@ export function AuthProvider({ children }) {
   const handleLoginResult = useCallback(async (data) => {
     if (data.status === 'LOGGED_IN') {
       await setToken(data.accessToken);
-      const user = await authApi.me();
+      let user;
+      try {
+        user = await authApi.me();
+      } catch (err) {
+        await clearToken(); // 로그인 안 된 채로 토큰만 남지 않게
+        throw err;
+      }
       setState({ status: 'signedIn', user, signupToken: null, kakaoEmail: null, error: null });
     } else {
       setState({ status: 'signupRequired', user: null, signupToken: data.signupToken, kakaoEmail: data.kakaoEmail, error: null });
@@ -53,7 +59,13 @@ export function AuthProvider({ children }) {
     completeSignup: async (body) => {
       const data = await authApi.signup(body, state.signupToken);
       await setToken(data.accessToken);
-      const user = await authApi.me();
+      let user;
+      try {
+        user = await authApi.me();
+      } catch (err) {
+        await clearToken();
+        throw err;
+      }
       setState({ status: 'signedIn', user, signupToken: null, kakaoEmail: null, error: null });
     },
     cancelSignup: () => setState({ status: 'signedOut', user: null, signupToken: null, kakaoEmail: null, error: null }),
