@@ -52,3 +52,6 @@ yarn-error.*
 .vscode/
 .idea/
 .claude/
+
+# vercel
+.vercel
