@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { AppText, Button, Envelope, KakaoIcon, LogoMark } from '../../../shared/components';
 import { colors } from '../../../shared/theme';
-import { config } from '../../../shared/config';
 import { showAlert } from '../../../shared/utils/alert';
 import { errorMessage } from '../../../shared/utils/errorMessage';
 import { useAuth } from '../AuthContext';
@@ -31,16 +30,16 @@ export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const [busy, setBusy] = useState(false);
 
-  // kakaoId 'new' 는 목업에서 "신규 회원"으로 처리돼 회원가입 화면으로 간다
-  const onDevLogin = async (kakaoId = '1001') => {
-    setBusy(kakaoId);
+  // 시연용: 카카오 페이지로 가지 않고 3초 뒤 로그인된 것처럼 메인으로 보낸다.
+  // 목업 모드(EXPO_PUBLIC_MOCK_API=true)의 가짜 회원으로 로그인하므로 이후 화면도 가짜 데이터로 동작한다.
+  const onStart = async () => {
+    setBusy(true);
     try {
-      const status = await devLogin(kakaoId);
-      // 신규 회원이면 가입 화면으로 (기존 회원은 (auth) 레이아웃이 홈으로 보낸다)
-      if (status !== 'LOGGED_IN') router.replace('/signup');
+      await new Promise((r) => setTimeout(r, 3000));
+      const status = await devLogin('1001');
+      router.replace(status === 'LOGGED_IN' ? '/' : '/signup');
     } catch (err) {
       showAlert('로그인 실패', errorMessage(err));
-    } finally {
       setBusy(false);
     }
   };
@@ -65,9 +64,7 @@ export default function LoginScreen() {
             오늘 못 한 말, 미뤄둔 다짐{'\n'}미래의 나에게 슬쩍 넘겨두세요
           </AppText>
           <View style={{ flex: 1, minHeight: 24 }} />
-          <Button title="카카오로 3초 만에 시작하기" variant="kakao" icon={<KakaoIcon />} onPress={() => router.push('/kakao')} style={{ alignSelf: 'stretch' }} />
-          {config.devLoginEnabled ? <Button title="개발용 로그인" variant="outline" size="md" loading={busy === '1001'} onPress={() => onDevLogin('1001')} style={{ alignSelf: 'stretch', marginTop: 10 }} /> : null}
-          {config.mockApi ? <Button title="목업: 회원가입 화면 보기" variant="outline" size="md" loading={busy === 'new'} onPress={() => onDevLogin('new')} style={{ alignSelf: 'stretch', marginTop: 10 }} /> : null}
+          <Button title="카카오로 3초 만에 시작하기" variant="kakao" icon={<KakaoIcon />} loading={busy} onPress={onStart} style={{ alignSelf: 'stretch' }} />
           <AppText style={{ color: colors.line, fontSize: 12, lineHeight: 18, marginTop: 20, textAlign: 'center' }}>
             시작하면 <AppText style={styles.link}>이용약관</AppText>과 <AppText style={styles.link}>개인정보 처리방침</AppText>에 동의하게 돼요
           </AppText>
